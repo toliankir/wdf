@@ -1,1 +1,5 @@
 WDF_PS2/node_modules
+WDF_PS2/bower
+WDF_PS2/tmp
+WDF_PS2/dist
+WDF_PS2/package-lock.json
