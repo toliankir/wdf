@@ -1,8 +1,11 @@
 const gulp = require('gulp'),
+    sequence = require('run-sequence'),
+    watch = require('gulp-watch'),
     less = require('gulp-less'),
     prefixer = require('gulp-autoprefixer'),
     browserSync = require('browser-sync'),
     debug = require('gulp-debug'),
+    cahced = require('gulp-cached'),
     inject = require('gulp-inject'),
     bower = require('main-bower-files'),
     npm = require('main-npm-files'),
@@ -29,14 +32,26 @@ const path = {
     dist: './dist'
 };
 
+
 //------------------- Dev -------------------
+gulp.task('remove-all', () => {
+    return gulp.src(path.tmpHTML + '/*')
+        .pipe(clean());
+});
+
 //---------------- Own files ----------------
 gulp.task('less', () => {
     return gulp.src(path.srcLess + '/**/*.less')
+        .pipe(plumber())
         .pipe(less())
         .pipe(prefixer())
         .pipe(gulp.dest(path.tmpCSS))
-        .pipe(browserSync.reload({stream: true}));
+        // .pipe(browserSync.reload({stream: true}))
+        .pipe(cahced('less'))
+        .pipe(debug({
+            title: 'LESS:',
+            showCount: false
+        }));
 });
 
 gulp.task('inject-css', ['less'], () => {
@@ -44,7 +59,10 @@ gulp.task('inject-css', ['less'], () => {
         .pipe(inject(gulp.src([
             path.tmpCSS + '/**/*.css',
             '!' + path.tmpCSS + path.libs + '/**/*'
-        ]), {relative: true}))
+        ]), {
+            relative: true,
+            quiet: true
+        }))
         .pipe(gulp.dest(path.tmpHTML));
 });
 
@@ -53,7 +71,12 @@ gulp.task('js', () => {
         .pipe(plumber())
         .pipe(jshint(false))
         .pipe(jshint.reporter('default'))
-        .pipe(gulp.dest(path.tmpJS));
+        .pipe(gulp.dest(path.tmpJS))
+        .pipe(cahced('js'))
+        .pipe(debug({
+            title: 'JS: ',
+            showCount: false
+        }));
 });
 
 gulp.task('inject-js', ['js'], () => {
@@ -61,16 +84,24 @@ gulp.task('inject-js', ['js'], () => {
         .pipe(inject(gulp.src([
             path.tmpJS + '/**/*.js',
             '!' + path.tmpJS + path.libs + '/**/*'
-        ]), {relative: true}))
+        ]), {
+            relative: true,
+            quiet: true
+        }))
         .pipe(gulp.dest(path.tmpHTML));
 });
 
-gulp.task('html', () => {
+gulp.task('html', ['remove-all'], () => {
     return gulp.src(path.srcHTML + '/**/*.html')
         .pipe(plumber())
         .pipe(htmlhint())
         .pipe(htmlhint.failReporter())
-        .pipe(gulp.dest(path.tmpHTML));
+        .pipe(gulp.dest(path.tmpHTML))
+        .pipe(cahced('HTML'))
+        .pipe(debug({
+            title: 'HTML: ',
+            showCount: false
+        }));
 });
 //---------------- /Own files ----------------
 
@@ -81,12 +112,22 @@ gulp.task('bower-css', () => {
         '**/*.ttf',
         '**/*.woff?'
     ]), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpCSS + path.libs));
+        .pipe(gulp.dest(path.tmpCSS + path.libs))
+        .pipe(cahced('bower-css'))
+        .pipe(debug({
+            title: 'Bower css: ',
+            showCount: false
+        }));
 });
 
 gulp.task('bower-js', () => {
     return gulp.src(bower(['**/*.js']), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpJS + path.libs));
+        .pipe(gulp.dest(path.tmpJS + path.libs))
+        .pipe(cahced('bower-js'))
+        .pipe(debug({
+            title: 'Bower JS: ',
+            showCount: false
+        }));
 });
 
 gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
@@ -94,7 +135,11 @@ gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
         .pipe(inject(gulp.src([
             path.tmpCSS + path.libs + '/**/*.css',
             path.tmpJS + path.libs + '/**/*.js',
-        ]), {relative: true, name: 'libs'}))
+        ]), {
+            relative: true,
+            name: 'libs',
+            quiet: true
+        }))
         .pipe(gulp.dest(path.tmpHTML));
 });
 //------------------ /Bower ------------------
@@ -102,12 +147,22 @@ gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
 //-------------------- NPM -------------------
 gulp.task('npm-css', () => {
     return gulp.src(npm('**/*.css'))
-        .pipe(gulp.dest(path.tmpCSS + path.libs));
+        .pipe(gulp.dest(path.tmpCSS + path.libs))
+        .pipe(cahced('npm-css'))
+        .pipe(debug({
+            title: 'NPM-CSS: ',
+            showCount: false
+        }));
 });
 
 gulp.task('npm-js', () => {
     return gulp.src(npm('**/*.js'))
-        .pipe(gulp.dest(path.tmpJS + path.libs));
+        .pipe(gulp.dest(path.tmpJS + path.libs))
+        .pipe(cahced('npm-js'))
+        .pipe(debug({
+            title: 'NPM JS: ',
+            showCount: false
+        }));
 });
 
 gulp.task('inject-npm', ['npm-js', 'npm-css'], () => {
@@ -115,24 +170,16 @@ gulp.task('inject-npm', ['npm-js', 'npm-css'], () => {
         .pipe(inject(gulp.src([
             path.tmpCSS + path.libs + '/**/*.css',
             path.tmpJS + path.libs + '/**/*.js',
-        ]), {relative: true, name: 'libs'}))
+        ]), {
+            relative: true,
+            name: 'libs',
+            quiet: true
+        }))
         .pipe(gulp.dest(path.tmpHTML));
 });
 //------------------- /NPM -------------------
-
-gulp.task('inject-all', ['html', 'less', 'js', 'bower-js', 'bower-css', 'npm-css', 'npm-js'], () => {
-    return gulp.src(path.tmpHTML + '/**/*.html')
-        .pipe(inject(gulp.src([
-            path.tmpCSS + '/**/*.css',
-            path.tmpJS + '/**/*.js',
-            '!' + path.tmpCSS + path.libs + '/**/*.css',
-            '!' + path.tmpJS + path.libs + '/**/*.js'
-        ]), {relative: true}))
-        .pipe(inject(gulp.src([
-            path.tmpCSS + path.libs + '/**/*.css',
-            path.tmpJS + path.libs + '/**/*.js',
-        ]), {relative: true, name: 'libs'}))
-        .pipe(gulp.dest(path.tmpHTML));
+gulp.task('inject-all', () => {
+    sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm');
 });
 
 gulp.task('browser-sync', () => {
@@ -140,20 +187,33 @@ gulp.task('browser-sync', () => {
         server: {
             baseDir: path.tmpHTML
         },
+        logFileChanges: false,
         notify: false
     });
 });
 
-gulp.task('start', ['browser-sync', 'inject-all'], () => {
-    gulp.watch(path.srcLess + '/**/*.less', ['inject-css']);
-    gulp.watch(path.srcJS + '/**/*.js', ['inject-js', browserSync.reload]);
-    gulp.watch(path.srcHTML + '/**/*.html', ['inject-all', browserSync.reload]);
-
-    gulp.watch('./bower.js', ['inject-bower', browserSync.reload])
-    gulp.watch('./package.json', ['inject-npm', browserSync.reload])
+// gulp.task('start', ['browser-sync', 'inject-all'], () => {
+//     gulp.watch(path.srcLess + '/**/*.less', ['inject-css']);
+//     gulp.watch(path.srcJS + '/**/*.js', ['inject-all', browserSync.reload]);
+//     gulp.watch(path.srcHTML + '/**/*.html', ['inject-all', browserSync.reload]);
+//
+//     gulp.watch('./bower.json', ['inject-all', browserSync.reload]);
+//     gulp.watch('./package.json', ['inject-all', browserSync.reload]);
+// });
+gulp.task('default', ['browser-sync', 'inject-all'], () => {
+    return watch([
+        path.srcLess + '**/*.less',
+        path.srcJS + '/**/*.js',
+        path.srcHTML + '/**/*.html',
+        './package.json',
+        './bower.json'
+    ], () => {
+        sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm');
+        // sequence(['inject-all']);
+        browserSync.reload();
+    })
 });
 //------------------ /Dev -------------------
-
 
 //------------------ Build ------------------
 

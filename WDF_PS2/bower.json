@@ -15,5 +15,7 @@
     "test",
     "tests"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "components-font-awesome": "^5.4.2"
+  }
 }
