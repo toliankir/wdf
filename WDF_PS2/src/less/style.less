@@ -1,0 +1,90 @@
+@background-color: rgb(56, 56, 56);
+@form-background-color: rgb(43, 43, 43);
+@input-background-color: rgb(62, 62, 62);
+@form-text-color: rgb(223, 226, 226);
+@submit-background-color: rgb(207, 37, 58);
+@submit-background-color--lighter: lighten(@submit-background-color, 5%);
+@submit-text-color: rgba(255, 255, 255);
+
+@import url('https://fonts.googleapis.com/css?family=Lato:400,700');
+
+body {
+  margin: 0;
+  background-color: @background-color;
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+  align-items: center;
+}
+
+* {
+  box-sizing: border-box;
+}
+.login-wrapper {
+  background-color: @form-background-color;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  @media (max-width: 740px) {
+   height: 100vh;
+  }
+}
+
+form {
+  padding: 0 30px 0 30px;
+  font-family: 'Lato', sans-serif;
+  @media (min-width: 741px) {
+    max-width: 360px;
+    padding: 60px 30px 60px 30px;
+  }
+  width: 100vw;
+  text-align: center;
+  color: @form-text-color;
+  & > a {
+    &:hover {
+      color: @submit-background-color;
+    }
+    float: right;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  &> p {
+    font-size: 0.8rem;
+    margin: 30px 0 32px 0;
+  }
+  & > i {
+    font-size: 2.6rem;
+  }
+  & > input{
+    &:focus {
+      outline: 0;
+     &::placeholder {
+       opacity: 0;
+     }
+    }
+    &::placeholder {
+      font-weight: 700;
+    }
+    display: block;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    width: 100%;
+    padding: 8px;
+    height:40px;
+    color: @form-text-color;
+    background-color: @input-background-color;
+    border: 0;
+    margin: 1px 0 1px 0;
+  }
+  & > input[type="Submit"] {
+    &:hover {
+      background-color: @submit-background-color--lighter;
+    }
+    cursor: pointer;
+    margin: 55px 0 0 0;
+    background-color: @submit-background-color;
+    border: 0;
+    font-weight: 700;
+    color:@submit-text-color;
+  }
+}
