@@ -1,6 +1,7 @@
 const gulp = require('gulp'),
     sequence = require('run-sequence'),
     watch = require('gulp-watch'),
+    rename = require('gulp-rename'),
     less = require('gulp-less'),
     prefixer = require('gulp-autoprefixer'),
     browserSync = require('browser-sync'),
@@ -29,7 +30,10 @@ const path = {
 
     libs: '/libs',
 
-    dist: './dist'
+    dist: './dist',
+    distFont: './dist/webfonts',
+    distCSS: './dist/style',
+    distJS: './dist/js'
 };
 
 
@@ -110,9 +114,9 @@ gulp.task('bower-css', () => {
     return gulp.src(bower([
         '**/*.css',
         '**/*.ttf',
-        '**/*.woff?'
+        '**/*.woff2'
     ]), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpCSS + path.libs))
+        .pipe(gulp.dest(path.tmpHTML + path.libs))
         .pipe(cahced('bower-css'))
         .pipe(debug({
             title: 'Bower css: ',
@@ -122,7 +126,7 @@ gulp.task('bower-css', () => {
 
 gulp.task('bower-js', () => {
     return gulp.src(bower(['**/*.js']), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpJS + path.libs))
+        .pipe(gulp.dest(path.tmpHTML + path.libs))
         .pipe(cahced('bower-js'))
         .pipe(debug({
             title: 'Bower JS: ',
@@ -133,8 +137,8 @@ gulp.task('bower-js', () => {
 gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
     return gulp.src(path.tmpHTML + '/**/*.html')
         .pipe(inject(gulp.src([
-            path.tmpCSS + path.libs + '/**/*.css',
-            path.tmpJS + path.libs + '/**/*.js',
+            path.tmpHTML + path.libs + '/**/*.css',
+            path.tmpHTML + path.libs + '/**/*.js',
         ]), {
             relative: true,
             name: 'libs',
@@ -147,7 +151,7 @@ gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
 //-------------------- NPM -------------------
 gulp.task('npm-css', () => {
     return gulp.src(npm('**/*.css'))
-        .pipe(gulp.dest(path.tmpCSS + path.libs))
+        .pipe(gulp.dest(path.tmpHTML + path.libs))
         .pipe(cahced('npm-css'))
         .pipe(debug({
             title: 'NPM-CSS: ',
@@ -157,7 +161,7 @@ gulp.task('npm-css', () => {
 
 gulp.task('npm-js', () => {
     return gulp.src(npm('**/*.js'))
-        .pipe(gulp.dest(path.tmpJS + path.libs))
+        .pipe(gulp.dest(path.tmpHTML + path.libs))
         .pipe(cahced('npm-js'))
         .pipe(debug({
             title: 'NPM JS: ',
@@ -168,8 +172,8 @@ gulp.task('npm-js', () => {
 gulp.task('inject-npm', ['npm-js', 'npm-css'], () => {
     return gulp.src(path.tmpHTML + '/**/*.html')
         .pipe(inject(gulp.src([
-            path.tmpCSS + path.libs + '/**/*.css',
-            path.tmpJS + path.libs + '/**/*.js',
+            path.tmpHTML + path.libs + '/**/*.css',
+            path.tmpHTML + path.libs + '/**/*.js',
         ]), {
             relative: true,
             name: 'libs',
@@ -179,7 +183,9 @@ gulp.task('inject-npm', ['npm-js', 'npm-css'], () => {
 });
 //------------------- /NPM -------------------
 gulp.task('inject-all', () => {
-    sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm');
+    sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm', () => {
+        browserSync.reload();
+    });
 });
 
 gulp.task('browser-sync', () => {
@@ -192,14 +198,6 @@ gulp.task('browser-sync', () => {
     });
 });
 
-// gulp.task('start', ['browser-sync', 'inject-all'], () => {
-//     gulp.watch(path.srcLess + '/**/*.less', ['inject-css']);
-//     gulp.watch(path.srcJS + '/**/*.js', ['inject-all', browserSync.reload]);
-//     gulp.watch(path.srcHTML + '/**/*.html', ['inject-all', browserSync.reload]);
-//
-//     gulp.watch('./bower.json', ['inject-all', browserSync.reload]);
-//     gulp.watch('./package.json', ['inject-all', browserSync.reload]);
-// });
 gulp.task('default', ['browser-sync', 'inject-all'], () => {
     return watch([
         path.srcLess + '**/*.less',
@@ -208,40 +206,60 @@ gulp.task('default', ['browser-sync', 'inject-all'], () => {
         './package.json',
         './bower.json'
     ], () => {
-        sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm');
-        // sequence(['inject-all']);
-        browserSync.reload();
+        sequence('inject-all');
     })
 });
 //------------------ /Dev -------------------
 
 //------------------ Build ------------------
-
+gulp.task('remove-dist', () => {
+    return gulp.src(path.dist + '/*')
+        .pipe(clean());
+});
 //---------------- Build CSS ----------------
 gulp.task('build-css', () => {
-    return gulp.src(path.tmpCSS + '/**/*.css')
-        .pipe(strip.text())
+    return gulp.src([
+        path.tmpHTML + path.libs + '/**/*.css',
+        path.tmpCSS + '/**/*.css'
+    ])
         .pipe(minifycss())
         .pipe(concat('style.css'))
-        .pipe(gulp.dest(path.dist));
+        .pipe(gulp.dest(path.distCSS));
+});
+
+gulp.task('build-font', () => {
+    return gulp.src([
+        path.tmpHTML + path.libs + '/**/*.ttf',
+        path.tmpHTML + path.libs + '/**/*.woff2'
+    ])
+        .pipe(rename({dirname: ''}))
+        .pipe(debug())
+        .pipe(gulp.dest(path.distFont));
 });
 //--------------- /Build CSS ----------------
 
 //---------------- Build JS -----------------
 
 gulp.task('build-js', () => {
-    return gulp.src(path.tmpJS + '/**/*.js')
-        .pipe(strip.text())
+    return gulp.src([
+        path.tmpHTML + path.libs + '/**/*.js',
+        path.tmpJS + '/**/*.js'
+    ])
         .pipe(uglify())
         .pipe(concat('bundle.js'))
-        .pipe(gulp.dest(path.dist));
+        .pipe(gulp.dest(path.distJS));
 });
+
 //--------------- /Build JS -----------------
 
-gulp.task('build', ['build-css', 'build-js'], () => {
+gulp.task('pre-build', () => {
+    sequence('remove-dist', ['build-css', 'build-font', 'build-js']);
+});
+
+gulp.task('build', ['pre-build'], () => {
     return gulp.src(path.srcHTML + '/**/*.html')
-        .pipe(inject(gulp.src(path.dist + '/**/*.js'), {relative: true}))
-        .pipe(inject(gulp.src(path.dist + '/**/*.css'), {relative: true}))
+        .pipe(inject(gulp.src(path.distJS + '/**/*.js', {read: false}), {relative: false, ignorePath: 'dist'}))
+        .pipe(inject(gulp.src(path.distCSS + '/**/*.css', {read: false}), {relative: false, ignorePath: 'dist'}))
         .pipe(strip())
         .pipe(gulp.dest(path.dist));
 });
