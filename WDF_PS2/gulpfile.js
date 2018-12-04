@@ -6,7 +6,7 @@ const gulp = require('gulp'),
     prefixer = require('gulp-autoprefixer'),
     browserSync = require('browser-sync'),
     debug = require('gulp-debug'),
-    cahced = require('gulp-cached'),
+    cached = require('gulp-cached'),
     inject = require('gulp-inject'),
     bower = require('main-bower-files'),
     npm = require('main-npm-files'),
@@ -14,253 +14,160 @@ const gulp = require('gulp'),
     plumber = require('gulp-plumber'),
     htmlhint = require('gulp-htmlhint'),
     minifycss = require('gulp-minify-css'),
-    concat = require('gulp-concat'),
     clean = require('gulp-clean'),
-    strip = require('gulp-strip-comments'),
-    uglify = require('gulp-uglify-es').default;
+    uglify = require('gulp-uglify-es').default,
+    systemPath = require('path');
 
 const path = {
-    srcHTML: './src',
+    src: './src',
     srcLess: './src/less',
     srcJS: './src/js',
-
-    tmpHTML: './tmp',
-    tmpCSS: './tmp/style',
-    tmpJS: './tmp/js',
-
-    libs: '/libs',
-
-    dist: './dist',
-    distFont: './dist/webfonts',
-    distCSS: './dist/style',
-    distJS: './dist/js'
+    dist: './dist'
 };
 
-
-//------------------- Dev -------------------
-gulp.task('remove-all', () => {
-    return gulp.src(path.tmpHTML + '/*')
+gulp.task('remove-dist', () => {
+    return gulp.src(path.dist + '/*')
         .pipe(clean());
 });
 
 //---------------- Own files ----------------
-gulp.task('less', () => {
+
+//---------------- CSS files ----------------
+gulp.task('own-css', () => {
     return gulp.src(path.srcLess + '/**/*.less')
         .pipe(plumber())
         .pipe(less())
         .pipe(prefixer())
-        .pipe(gulp.dest(path.tmpCSS))
-        // .pipe(browserSync.reload({stream: true}))
-        .pipe(cahced('less'))
+        .pipe(minifycss())
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist))
+        .pipe(cached('own-css'))
         .pipe(debug({
-            title: 'LESS:',
+            title: 'Own LESS:',
             showCount: false
         }));
 });
 
-gulp.task('inject-css', ['less'], () => {
-    return gulp.src(path.tmpHTML + '/**/*.html')
-        .pipe(inject(gulp.src([
-            path.tmpCSS + '/**/*.css',
-            '!' + path.tmpCSS + path.libs + '/**/*'
-        ]), {
-            relative: true,
-            quiet: true
+gulp.task('vendor-css', async () => {
+    return gulp.src(npm('dist/**/*.css').concat(bower(['**/*.css'])))
+        .pipe(minifycss())
+        .pipe(debug({
+            title: 'Vendor CSS: ',
+            showCount: false
         }))
-        .pipe(gulp.dest(path.tmpHTML));
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist));
 });
 
-gulp.task('js', () => {
+gulp.task('inject-css', () => {
+    return gulp.src(path.dist + '/**/*.html')
+        .pipe(inject(gulp.src(path.dist + '/**/*.css'), {
+            ignorePath: 'dist',
+            quiet: true
+        }))
+        .pipe(gulp.dest(path.dist));
+});
+//---------------- /CSS files ----------------
+
+//----------------- JS files -----------------
+gulp.task('own-js', () => {
     return gulp.src(path.srcJS + '/**/*.js')
         .pipe(plumber())
         .pipe(jshint(false))
         .pipe(jshint.reporter('default'))
-        .pipe(gulp.dest(path.tmpJS))
-        .pipe(cahced('js'))
+        .pipe(uglify())
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist))
+        .pipe(cached('own-js'))
         .pipe(debug({
-            title: 'JS: ',
+            title: 'Own JS: ',
             showCount: false
         }));
 });
 
-gulp.task('inject-js', ['js'], () => {
-    return gulp.src(path.tmpHTML + '/**/*.html')
-        .pipe(inject(gulp.src([
-            path.tmpJS + '/**/*.js',
-            '!' + path.tmpJS + path.libs + '/**/*'
-        ]), {
-            relative: true,
-            quiet: true
+gulp.task('vendor-js', async () => {
+    return gulp.src(npm('dist/**/*.js').concat(bower(['**/*.js'])))
+        .pipe(uglify())
+        .pipe(debug({
+            title: 'Vendor JS: ',
+            showCount: false
         }))
-        .pipe(gulp.dest(path.tmpHTML));
+        .pipe(rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist));
 });
 
-gulp.task('html', ['remove-all'], () => {
-    return gulp.src(path.srcHTML + '/**/*.html')
+function getDistPath(filePath) {
+    return '<script src="/' + systemPath.basename(filePath, '.js') + '.min.js' + '"></script>';
+}
+
+gulp.task('inject-js', () => {
+    return gulp.src(path.dist + '/**/*.html')
+        .pipe(inject(gulp.src(npm('dist/**/*.js').concat(bower(['**/*.js'])), {read: false}), {
+            name: 'libs',
+            transform: function (filePath) {
+                return getDistPath(filePath);
+            },
+            quiet: true
+        }))
+        .pipe(inject(gulp.src(path.srcJS + '/**/*.js', {read: false}), {
+            transform: function (filePath) {
+                return getDistPath(filePath);
+            },
+            quiet: true
+        }))
+        .pipe(gulp.dest(path.dist));
+});
+//---------------- /JS files -----------------
+gulp.task('html', () => {
+    return gulp.src(path.src + '/**/*.html')
         .pipe(plumber())
         .pipe(htmlhint())
         .pipe(htmlhint.failReporter())
-        .pipe(gulp.dest(path.tmpHTML))
-        .pipe(cahced('HTML'))
+        .pipe(gulp.dest(path.dist))
+        .pipe(cached('HTML'))
         .pipe(debug({
             title: 'HTML: ',
             showCount: false
         }));
 });
-//---------------- /Own files ----------------
 
-//------------------- Bower ------------------
-gulp.task('bower-css', () => {
-    return gulp.src(bower([
-        '**/*.css',
-        '**/*.ttf',
-        '**/*.woff2'
-    ]), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpHTML + path.libs))
-        .pipe(cahced('bower-css'))
-        .pipe(debug({
-            title: 'Bower css: ',
-            showCount: false
-        }));
-});
+gulp.task('copy-all', ['html', 'vendor-js', 'vendor-css', 'own-css', 'own-js']);
 
-gulp.task('bower-js', () => {
-    return gulp.src(bower(['**/*.js']), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpHTML + path.libs))
-        .pipe(cahced('bower-js'))
-        .pipe(debug({
-            title: 'Bower JS: ',
-            showCount: false
-        }));
-});
-
-gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
-    return gulp.src(path.tmpHTML + '/**/*.html')
-        .pipe(inject(gulp.src([
-            path.tmpHTML + path.libs + '/**/*.css',
-            path.tmpHTML + path.libs + '/**/*.js',
-        ]), {
-            relative: true,
-            name: 'libs',
-            quiet: true
-        }))
-        .pipe(gulp.dest(path.tmpHTML));
-});
-//------------------ /Bower ------------------
-
-//-------------------- NPM -------------------
-gulp.task('npm-css', () => {
-    return gulp.src(npm('**/*.css'))
-        .pipe(gulp.dest(path.tmpHTML + path.libs))
-        .pipe(cahced('npm-css'))
-        .pipe(debug({
-            title: 'NPM-CSS: ',
-            showCount: false
-        }));
-});
-
-gulp.task('npm-js', () => {
-    return gulp.src(npm('**/*.js'))
-        .pipe(gulp.dest(path.tmpHTML + path.libs))
-        .pipe(cahced('npm-js'))
-        .pipe(debug({
-            title: 'NPM JS: ',
-            showCount: false
-        }));
-});
-
-gulp.task('inject-npm', ['npm-js', 'npm-css'], () => {
-    return gulp.src(path.tmpHTML + '/**/*.html')
-        .pipe(inject(gulp.src([
-            path.tmpHTML + path.libs + '/**/*.css',
-            path.tmpHTML + path.libs + '/**/*.js',
-        ]), {
-            relative: true,
-            name: 'libs',
-            quiet: true
-        }))
-        .pipe(gulp.dest(path.tmpHTML));
-});
-//------------------- /NPM -------------------
-gulp.task('inject-all', () => {
-    sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm', () => {
-        browserSync.reload();
-    });
+gulp.task('build', () => {
+    sequence('remove-dist', 'copy-all', 'inject-js', 'inject-css');
 });
 
 gulp.task('browser-sync', () => {
     browserSync({
         server: {
-            baseDir: path.tmpHTML
+            baseDir: path.dist
         },
         logFileChanges: false,
         notify: false
     });
 });
 
-gulp.task('default', ['browser-sync', 'inject-all'], () => {
+gulp.task('watch', ['browser-sync', 'build'], () => {
     return watch([
         path.srcLess + '**/*.less',
         path.srcJS + '/**/*.js',
-        path.srcHTML + '/**/*.html',
-        './package.json',
-        './bower.json'
+        path.src + '/**/*.html'
     ], () => {
-        sequence('inject-all');
+        sequence(['own-css', 'own-js', 'html'], 'inject-js', 'inject-css', () => {
+            browserSync.reload();
+        });
+
     })
 });
-//------------------ /Dev -------------------
 
-//------------------ Build ------------------
-gulp.task('remove-dist', () => {
-    return gulp.src(path.dist + '/*')
-        .pipe(clean());
-});
-//---------------- Build CSS ----------------
-gulp.task('build-css', () => {
-    return gulp.src([
-        path.tmpHTML + path.libs + '/**/*.css',
-        path.tmpCSS + '/**/*.css'
-    ])
-        .pipe(minifycss())
-        .pipe(concat('style.css'))
-        .pipe(gulp.dest(path.distCSS));
+gulp.task('help', () => {
+    console.log('gulp watch     # Watch files.');
+    console.log('gulp build     # Build files.');
+    console.log('Better run with argument --silent:');
+    console.log('gulp --silent watch');
+    console.log('gulp --silent build');
 });
 
-gulp.task('build-font', () => {
-    return gulp.src([
-        path.tmpHTML + path.libs + '/**/*.ttf',
-        path.tmpHTML + path.libs + '/**/*.woff2'
-    ])
-        .pipe(rename({dirname: ''}))
-        .pipe(debug())
-        .pipe(gulp.dest(path.distFont));
+gulp.task('default', () => {
+    console.log('Run "gulp help" for help.');
 });
-//--------------- /Build CSS ----------------
-
-//---------------- Build JS -----------------
-
-gulp.task('build-js', () => {
-    return gulp.src([
-        path.tmpHTML + path.libs + '/**/*.js',
-        path.tmpJS + '/**/*.js'
-    ])
-        .pipe(uglify())
-        .pipe(concat('bundle.js'))
-        .pipe(gulp.dest(path.distJS));
-});
-
-//--------------- /Build JS -----------------
-
-gulp.task('pre-build', () => {
-    sequence('remove-dist', ['build-css', 'build-font', 'build-js']);
-});
-
-gulp.task('build', ['pre-build'], () => {
-    return gulp.src(path.srcHTML + '/**/*.html')
-        .pipe(inject(gulp.src(path.distJS + '/**/*.js', {read: false}), {relative: false, ignorePath: 'dist'}))
-        .pipe(inject(gulp.src(path.distCSS + '/**/*.css', {read: false}), {relative: false, ignorePath: 'dist'}))
-        .pipe(strip())
-        .pipe(gulp.dest(path.dist));
-});
-//----------------- /Build ------------------

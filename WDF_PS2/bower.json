@@ -16,6 +16,7 @@
     "tests"
   ],
   "dependencies": {
-    "components-font-awesome": "^5.4.2"
+    "components-font-awesome": "^5.4.2",
+    "jquery": "^3.3.1"
   }
 }
