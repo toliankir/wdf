@@ -15,6 +15,7 @@ const gulp = require('gulp'),
     htmlhint = require('gulp-htmlhint'),
     minifycss = require('gulp-minify-css'),
     clean = require('gulp-clean'),
+    replace = require('gulp-replace'),
     uglify = require('gulp-uglify-es').default,
     systemPath = require('path');
 
@@ -118,6 +119,24 @@ gulp.task('inject-js', () => {
         .pipe(gulp.dest(path.dist));
 });
 //---------------- /JS files -----------------
+
+//-------------- Font AweSome ---------------
+gulp.task('modify-awesomecss', ()=> {
+    return gulp.src(path.dist + '/fontawesome-all.min.css')
+        .pipe(replace('../webfonts/',''))
+        .pipe(gulp.dest(path.dist + '/'));
+});
+
+gulp.task('copy-fontawesome', ['modify-awesomecss'], () => {
+    return gulp.src(bower([
+        '**/*.ttf',
+        '**/*.woff2'
+    ]))
+        .pipe(gulp.dest(path.dist));
+});
+//-------------- /Font AweSome ---------------
+
+
 gulp.task('html', () => {
     return gulp.src(path.src + '/**/*.html')
         .pipe(plumber())
@@ -134,7 +153,7 @@ gulp.task('html', () => {
 gulp.task('copy-all', ['html', 'vendor-js', 'vendor-css', 'own-css', 'own-js']);
 
 gulp.task('build', () => {
-    sequence('remove-dist', 'copy-all', 'inject-js', 'inject-css');
+    sequence('remove-dist', 'copy-all', 'inject-js', 'inject-css', 'copy-fontawesome');
 });
 
 gulp.task('browser-sync', () => {
