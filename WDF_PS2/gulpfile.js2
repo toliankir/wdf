@@ -1,0 +1,183 @@
+const gulp = require('gulp'),
+    plugins = require('gulp-load-plugins')(),
+    browserSync = require('browser-sync'),
+    systemPath = require('path');
+
+const path = {
+    src: './src',
+    srcLess: './src/less',
+    srcJS: './src/js',
+    dist: './dist'
+};
+
+gulp.task('remove-dist', () => {
+    return gulp.src(path.dist + '/*')
+        .pipe(plugins.clean());
+});
+
+//---------------- Own files ----------------
+
+//---------------- CSS files ----------------
+gulp.task('own-css', () => {
+    return gulp.src(path.srcLess + '/**/*.less')
+        .pipe(plugins.plumber())
+        .pipe(plugins.less())
+        .pipe(plugins.autoprefixer())
+        .pipe(plugins.minifyCss())
+        .pipe(plugins.rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist))
+        .pipe(plugins.cached('own-css'))
+        .pipe(plugins.debug({
+            title: 'Own LESS:',
+            showCount: false
+        }));
+});
+
+gulp.task('vendor-css', () => {
+    return gulp.src(plugins.mainNpmFiles())
+        // .pipe(plugins.mainBowerFiles('**/*.css'))
+
+        .pipe(gulp.dest(path.dist));
+    //.concat(plugins.()
+    // return gulp.src(plugins.mainBowerFiles())
+    //     .pipe(plugins.filter('**/*.css'))
+    //     .pipe(plugins.minifyCss())
+    //     .pipe(plugins.debug({
+    //         title: 'Vendor CSS: ',
+    //         showCount: false
+    //     }))
+    //     .pipe(plugins.rename({suffix: '.min'}))
+    //     .pipe(gulp.dest(path.dist));
+});
+
+gulp.task('inject-css', () => {
+    return gulp.src(path.dist + '/**/*.html')
+        .pipe(plugins.inject(gulp.src(path.dist + '/**/*.css'), {
+            ignorePath: 'dist',
+            quiet: true
+        }))
+        .pipe(gulp.dest(path.dist));
+});
+//---------------- /CSS files ----------------
+
+//----------------- JS files -----------------
+gulp.task('own-js', () => {
+    return gulp.src(path.srcJS + '/**/*.js')
+        .pipe(plugins.plumber())
+        .pipe(plugins.jshint(false))
+        .pipe(plugins.jshint.reporter('default'))
+        .pipe(plugins.uglifyEs())
+        .pipe(plugins.rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist))
+        .pipe(plugins.cached('own-js'))
+        .pipe(plugins.debug({
+            title: 'Own JS: ',
+            showCount: false
+        }));
+});
+
+gulp.task('vendor-js', () => {
+    return gulp.src(npm('dist/**/*.js').concat(bower(['**/*.js'])))
+        .pipe(plugins.uglifyEs())
+        .pipe(plugins.debug({
+            title: 'Vendor JS: ',
+            showCount: false
+        }))
+        .pipe(plugins.rename({suffix: '.min'}))
+        .pipe(gulp.dest(path.dist));
+});
+
+function getDistPath(filePath) {
+    return '<script src="/' + systemPath.basename(filePath, '.js') + '.min.js' + '"></script>';
+}
+
+gulp.task('inject-js', () => {
+    return gulp.src(path.dist + '/**/*.html')
+        .pipe(plugins.inject(gulp.src(npm('dist/**/*.js').concat(bower(['**/*.js'])), {read: false}), {
+            name: 'libs',
+            transform: function (filePath) {
+                return getDistPath(filePath);
+            },
+            quiet: true
+        }))
+        .pipe(plugins.inject(gulp.src(path.srcJS + '/**/*.js', {read: false}), {
+            transform: function (filePath) {
+                return getDistPath(filePath);
+            },
+            quiet: true
+        }))
+        .pipe(gulp.dest(path.dist));
+});
+//---------------- /JS files -----------------
+
+//-------------- Font AweSome ---------------
+gulp.task('modify-awesomecss', () => {
+    return gulp.src(path.dist + '/fontawesome-all.min.css')
+        .pipe(plugins.replace('../webfonts/', ''))
+        .pipe(gulp.dest(path.dist + '/'));
+});
+
+gulp.task('copy-fontawesome', ['modify-awesomecss'], () => {
+    return gulp.src(bower([
+        '**/*.ttf',
+        '**/*.woff2'
+    ]))
+        .pipe(gulp.dest(path.dist));
+});
+//-------------- /Font AweSome ---------------
+
+
+gulp.task('html', () => {
+    return gulp.src(path.src + '/**/*.html')
+        .pipe(plugins.plumber())
+        .pipe(plugins.htmlhint())
+        .pipe(plugins.htmlhint.failReporter())
+        .pipe(gulp.dest(path.dist))
+        .pipe(plugins.cached('HTML'))
+        .pipe(plugins.debug({
+            title: 'HTML: ',
+            showCount: false
+        }));
+});
+
+gulp.task('copy-all', ['html', 'vendor-js', 'vendor-css', 'own-css', 'own-js']);
+
+gulp.task('build', () => {
+    plugins.sequence('remove-dist', 'copy-all', 'inject-js', 'inject-css', 'copy-fontawesome');
+});
+
+gulp.task('browser-sync', () => {
+    browserSync({
+        server: {
+            baseDir: path.dist
+        },
+        logFileChanges: false,
+        notify: false
+    });
+});
+
+gulp.task('watch', ['browser-sync', 'build'], () => {
+    browserSync.reload();
+    return plugins.watch([
+        path.srcLess + '**/*.less',
+        path.srcJS + '/**/*.js',
+        path.src + '/**/*.html'
+    ], () => {
+        plugins.sequence(['own-css', 'own-js', 'html'], 'inject-js', 'inject-css', () => {
+            browserSync.reload();
+        });
+
+    })
+});
+
+gulp.task('help', () => {
+    console.log('gulp watch     # Watch files.');
+    console.log('gulp build     # Build files.');
+    console.log('Better run with argument --silent:');
+    console.log('gulp --silent watch');
+    console.log('gulp --silent build');
+});
+
+gulp.task('default', () => {
+    console.log('Run "gulp help" for help.');
+});

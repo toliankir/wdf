@@ -1,5 +1,5 @@
 {
-  "name": "wdf_ps2",
+  "name": "bower",
   "description": "",
   "main": "index.js",
   "authors": [
@@ -7,16 +7,14 @@
   ],
   "license": "ISC",
   "homepage": "https://github.com/toliankir/wdf",
+  "private": true,
   "ignore": [
     "**/.*",
     "node_modules",
     "bower_components",
-    "./bower",
+    "./bower_components",
     "test",
     "tests"
   ],
-  "dependencies": {
-    "components-font-awesome": "^5.4.2",
-    "jquery": "^3.3.1"
-  }
+  "dependencies": {}
 }
