@@ -4,10 +4,10 @@ const gulp = require('gulp'),
     plugins = require('gulp-load-plugins')();
 
 const mask = {
-    html: '/*.html',
-    less: '/**/*.less',
-    css: '/**/*.css',
-    js: '/**/*.js'
+    html: '*.html',
+    less: '**/*.less',
+    css: '**/*.css',
+    js: '**/*.js'
 };
 
 const path = {
@@ -20,15 +20,16 @@ const path = {
     assets: './assets'
 };
 
-
+//Removes prev distributive before start.
 gulp.task('remove-dist', () => {
     return gulp.src(path.dist, {read: false})
         .pipe(plugins.clean());
 });
 
+//-------------------------- Vendor --------------------------
 gulp.task('vendor-npm', () => {
     gulp.src(plugins.mainNpmFiles())
-        .pipe(plugins.filter('**/*.js'))
+        .pipe(plugins.filter(mask.js))
         .pipe(plugins.uglifyEs.default())
         .pipe(plugins.rename({suffix: '.min'}))
         .pipe(plugins.debug({
@@ -38,7 +39,7 @@ gulp.task('vendor-npm', () => {
         .pipe(gulp.dest(path.distVendor));
 
     gulp.src(plugins.mainNpmFiles())
-        .pipe(plugins.filter('**/*.css'))
+        .pipe(plugins.filter(mask.css))
         .pipe(plugins.minifyCss())
         .pipe(plugins.rename({suffix: '.min'}))
         .pipe(plugins.debug({
@@ -50,7 +51,7 @@ gulp.task('vendor-npm', () => {
 
 gulp.task('vendor-bower', () => {
     gulp.src('./bower.json')
-        .pipe(plugins.mainBowerFiles('**/*.css'))
+        .pipe(plugins.mainBowerFiles(mask.css))
         .pipe(plugins.minifyCss())
         .pipe(plugins.rename({suffix: '.min'}))
         .pipe(plugins.debug({
@@ -60,7 +61,7 @@ gulp.task('vendor-bower', () => {
         .pipe(gulp.dest(path.distVendor));
 
     gulp.src('./bower.json')
-        .pipe(plugins.mainBowerFiles('**/*.js'))
+        .pipe(plugins.mainBowerFiles(mask.js))
         .pipe(plugins.uglifyEs.default())
         .pipe(plugins.rename({suffix: '.min'}))
         .pipe(plugins.debug({
@@ -69,10 +70,11 @@ gulp.task('vendor-bower', () => {
         }))
         .pipe(gulp.dest(path.distVendor));
 });
+//------------------------- /Vendor --------------------------
 
-
+//------------------------ Own Files -------------------------
 gulp.task('own-js', () => {
-    return gulp.src(path.srcJs + mask.js)
+    return gulp.src(path.srcJs + '/' + mask.js)
         .pipe(plugins.plumber())
         .pipe(plugins.jshint(false))
         .pipe(plugins.jshint.reporter('default'))
@@ -85,9 +87,8 @@ gulp.task('own-js', () => {
         .pipe(gulp.dest(path.dist));
 });
 
-
 gulp.task('own-less', () => {
-    return gulp.src(path.srcLess + mask.less)
+    return gulp.src(path.srcLess + '/' + mask.less)
         .pipe(plugins.less())
         .pipe(plugins.autoprefixer())
         .pipe(plugins.minifyCss())
@@ -104,17 +105,19 @@ gulp.task('own-html', () => {
         .pipe(plugins.htmlhint())
         .pipe(plugins.htmlhint.failReporter());
 });
+//----------------------- /Own Files -------------------------
 
+//Injects all files from distributive folder to html files.
 gulp.task('inject-all', () => {
-    return gulp.src([path.main + '/*.html'])
-        .pipe(plugins.inject(gulp.src('./dist/*.css', {read: false}), {quiet: true}))
+    return gulp.src([path.main + '/' + mask.html])
+        .pipe(plugins.inject(gulp.src(path.dist + '/*.css', {read: false}), {quiet: true}))
         .pipe(plugins.debug({
             title: 'HTML inject:',
             showCount: false
         }))
-        .pipe(plugins.inject(gulp.src('./dist/*.js', {read: false}), {quiet: true}))
-        .pipe(plugins.inject(gulp.src('./dist/vendor/**/*.js', {read: false}), {name: 'libs', quiet: true}))
-        .pipe(plugins.inject(gulp.src('./dist/vendor/**/*.css', {read: false}), {name: 'libs', quiet: true}))
+        .pipe(plugins.inject(gulp.src(path.dist + '/*.js', {read: false}), {quiet: true}))
+        .pipe(plugins.inject(gulp.src(path.distVendor + '/' + mask.js, {read: false}), {name: 'libs', quiet: true}))
+        .pipe(plugins.inject(gulp.src(path.distVendor + '/' + mask.css, {read: false}), {name: 'libs', quiet: true}))
         .pipe(gulp.dest(path.main));
 });
 
@@ -128,10 +131,11 @@ gulp.task('browser-sync', () => {
     });
 });
 
-
+//Run all tasks in seted order
 gulp.task('build', () => {
     return sequence('remove-dist', ['vendor-npm', 'vendor-bower', 'own-js', 'own-less', 'own-html'], 'inject-all', 'browser-sync');
 });
+
 
 gulp.task('watch', ['build'], () => {
     plugins.watch(path.srcLess + mask.less, () => {
@@ -151,5 +155,11 @@ gulp.task('watch', ['build'], () => {
             browserSync.reload();
         })
     });
+});
 
+//-------------------------- Help ----------------------------
+gulp.task('default', () => {
+    console.log('Run \'gulp --silent watch\' for working. \n' +
+        'That collects all dependencies and user files to distributive folder.\n' +
+        'Then starts web server on 3000 port and watching for user files changing.');
 });
