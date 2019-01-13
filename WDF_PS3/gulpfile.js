@@ -8,7 +8,6 @@ const gulp = require('gulp'),
     debug = require('gulp-debug'),
     cahced = require('gulp-cached'),
     inject = require('gulp-inject'),
-    bower = require('main-bower-files'),
     npm = require('main-npm-files'),
     jshint = require('gulp-jshint'),
     plumber = require('gulp-plumber'),
@@ -109,45 +108,6 @@ gulp.task('html', ['remove-all'], () => {
 });
 //---------------- /Own files ----------------
 
-//------------------- Bower ------------------
-gulp.task('bower-css', () => {
-    return gulp.src(bower([
-        '**/*.css',
-        '**/*.ttf',
-        '**/*.woff2'
-    ]), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpHTML + path.libs))
-        .pipe(cahced('bower-css'))
-        .pipe(debug({
-            title: 'Bower css: ',
-            showCount: false
-        }));
-});
-
-gulp.task('bower-js', () => {
-    return gulp.src(bower(['**/*.js']), {base: 'bower'})
-        .pipe(gulp.dest(path.tmpHTML + path.libs))
-        .pipe(cahced('bower-js'))
-        .pipe(debug({
-            title: 'Bower JS: ',
-            showCount: false
-        }));
-});
-
-gulp.task('inject-bower', ['bower-js', 'bower-css'], () => {
-    return gulp.src(path.tmpHTML + '/**/*.html')
-        .pipe(inject(gulp.src([
-            path.tmpHTML + path.libs + '/**/*.css',
-            path.tmpHTML + path.libs + '/**/*.js',
-        ]), {
-            relative: true,
-            name: 'libs',
-            quiet: true
-        }))
-        .pipe(gulp.dest(path.tmpHTML));
-});
-//------------------ /Bower ------------------
-
 //-------------------- NPM -------------------
 gulp.task('npm-css', () => {
     return gulp.src(npm('dist/**/*.css'))
@@ -183,7 +143,7 @@ gulp.task('inject-npm', ['npm-js', 'npm-css'], () => {
 });
 //------------------- /NPM -------------------
 gulp.task('inject-all', () => {
-    sequence('html', 'inject-css', 'inject-js', 'inject-bower', 'inject-npm', () => {
+    sequence('html', 'inject-css', 'inject-js', 'inject-npm',  () => {
         browserSync.reload();
     });
 });
@@ -203,8 +163,7 @@ gulp.task('default', ['browser-sync', 'inject-all'], () => {
         path.srcLess + '**/*.less',
         path.srcJS + '/**/*.js',
         path.srcHTML + '/**/*.html',
-        './package.json',
-        './bower.json'
+        './package.json'
     ], () => {
         sequence('inject-all');
     })
