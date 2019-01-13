@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2d test</title>
+</head>
+<body>
+<canvas id="canvas" width="640" height="640"></canvas>
+
+<script>
+    function Animation(rate) {
+        this.lastTime = 0;
+        this.Rate = rate;
+        this.update = function () {
+        };
+        this.render = function () {
+
+        };
+    }
+
+    Animation.prototype.run = function (time) {
+        if ((time - this.lastTime) > this.Rate) {
+            this.lastTime = time;
+            this.update();
+        }
+        this.render();
+    };
+
+    //1
+    let layer1 = new Animation(30);
+    layer1.render = function () {
+        ctx.drawImage(art, 0, 0, 640, 640,
+            0, 0, 640, 640);
+
+    };
+
+    //2
+    let layer2 = new Animation(30);
+    layer2.sx = 640;
+    layer2.sy = 0;
+    layer2.w = 1280;
+    layer2.dx = 0;
+    layer2.speed = 1;
+
+    layer2.update = function () {
+        if (this.dx > this.w) {
+            this.dx -= this.w;
+        }
+        this.dx += this.speed;
+    };
+
+    layer2.render = function () {
+        ctx.drawImage(art, this.sx + this.dx, this.sy, 640, 640,
+            0, 0, 640, 640);
+        if (this.dx > (this.w - 640)) {
+            ctx.drawImage(art, this.sx, this.sy, 640, 640,
+                this.w - this.dx, 0, 640, 640);
+        }
+    };
+
+    //3
+    let layer3 = new Animation(30);
+    layer3.sx = 0;
+    layer3.sy = 640;
+    layer3.w = 1280;
+    layer3.speed = 3;
+    layer3.dx = 0;
+    layer3.update = layer2.update;
+    layer3.render = layer2.render;
+
+    //4
+    let layer4 = new Animation(30);
+    layer4.sx = 0;
+    layer4.sy = 1280;
+    layer4.w = 1920;
+    layer4.speed = 6;
+    layer4.dx = 0;
+    layer4.update = layer2.update;
+    layer4.render = layer2.render;
+
+    //5
+    let layer5 = new Animation(30);
+    layer5.sx = 0;
+    layer5.sy = 1920;
+    layer5.w = 1920;
+    layer5.speed = 10;
+    layer5.dx = 0;
+    layer5.update = layer2.update;
+    layer5.render = layer2.render;
+
+    //6
+    let layer6 = new Animation(60);
+    layer6.frameNum = 0;
+    layer6.getFrame = function () {
+        if (this.frameNum > 4) {
+            return {x: (this.frameNum - 5) * 300, y: 2880};
+        } else {
+            return {x: this.frameNum * 300, y: 2560};
+        }
+    };
+    layer6.update = function () {
+        this.frameNum++;
+        if (this.frameNum > 9) {
+            this.frameNum = 0;
+        }
+    };
+    layer6.render = function () {
+        const frame = this.getFrame();
+        ctx.drawImage(art, frame.x, frame.y, 300, 320,
+            150, 200, 300, 320);
+    };
+
+
+    function mainLoop(time) {
+        layer1.run(time);
+        layer2.run(time);
+        layer3.run(time);
+        layer4.run(time);
+        layer6.run(time);
+        layer5.run(time);
+
+        requestAnimationFrame(mainLoop);
+    }
+
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext('2d');
+
+    let art = new Image();
+    art.onload = function () {
+        requestAnimationFrame(mainLoop)
+    };
+    art.src = 'art.png';
+
+
+</script>
+</body>
+</html>

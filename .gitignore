@@ -5,6 +5,7 @@ WDF_PS2/dist
 WDF_PS2/package-lock.json
 WDF_PS3/node_modules
 WDF_PS3/tmp
+WDF_PS3/bower
 WDF_PS3/dist
 WDF_PS3/package-lock.json
 .idea
