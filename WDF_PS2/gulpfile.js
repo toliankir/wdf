@@ -27,9 +27,20 @@ gulp.task('remove-dist', () => {
 });
 
 //-------------------------- Vendor --------------------------
+gulp.task('vendor-bower', () => {
+    gulp.src('./bower.json')
+        .pipe(plugins.mainBowerFiles())
+
+        .pipe(plugins.debug({
+            title: 'Bower JS:',
+            showCount: false
+        }))
+        .pipe(plugins.rename({dirname: ''}))
+        .pipe(gulp.dest(path.distVendor));
+});
+
 gulp.task('vendor-npm', () => {
     gulp.src(plugins.mainNpmFiles())
-        .pipe(plugins.filter(mask.js))
         .pipe(plugins.uglifyEs.default())
         .pipe(plugins.rename({suffix: '.min'}))
         .pipe(plugins.debug({
@@ -38,8 +49,7 @@ gulp.task('vendor-npm', () => {
         }))
         .pipe(gulp.dest(path.distVendor));
 
-    gulp.src(plugins.mainNpmFiles())
-        .pipe(plugins.filter(mask.css))
+    gulp.src(plugins.styleNpmFiles())
         .pipe(plugins.minifyCss())
         .pipe(plugins.rename({suffix: '.min'}))
         .pipe(plugins.debug({
@@ -49,27 +59,6 @@ gulp.task('vendor-npm', () => {
         .pipe(gulp.dest(path.distVendor));
 });
 
-gulp.task('vendor-bower', () => {
-    gulp.src('./bower.json')
-        .pipe(plugins.mainBowerFiles(mask.css))
-        .pipe(plugins.minifyCss())
-        .pipe(plugins.rename({suffix: '.min'}))
-        .pipe(plugins.debug({
-            title: 'Bower CSS:',
-            showCount: false
-        }))
-        .pipe(gulp.dest(path.distVendor));
-
-    gulp.src('./bower.json')
-        .pipe(plugins.mainBowerFiles(mask.js))
-        .pipe(plugins.uglifyEs.default())
-        .pipe(plugins.rename({suffix: '.min'}))
-        .pipe(plugins.debug({
-            title: 'Bower JS:',
-            showCount: false
-        }))
-        .pipe(gulp.dest(path.distVendor));
-});
 //------------------------- /Vendor --------------------------
 
 //------------------------ Own Files -------------------------
@@ -92,6 +81,7 @@ gulp.task('own-less', () => {
         .pipe(plugins.less())
         .pipe(plugins.autoprefixer())
         .pipe(plugins.minifyCss())
+        .pipe(plugins.concat('style.min.css'))
         .pipe(plugins.debug({
             title: 'Own LESS:',
             showCount: false
@@ -109,7 +99,7 @@ gulp.task('own-html', () => {
 
 //Injects all files from distributive folder to html files.
 gulp.task('inject-all', () => {
-    return gulp.src([path.main + '/' + mask.html])
+    return gulp.src([path.src + '/' + mask.html])
         .pipe(plugins.inject(gulp.src(path.dist + '/*.css', {read: false}), {quiet: true}))
         .pipe(plugins.debug({
             title: 'HTML inject:',
@@ -131,9 +121,9 @@ gulp.task('browser-sync', () => {
     });
 });
 
-//Run all tasks in seted order
+//Run all tasks in selected order
 gulp.task('build', () => {
-    return sequence('remove-dist', ['vendor-npm', 'vendor-bower', 'own-js', 'own-less', 'own-html'], 'inject-all', 'browser-sync');
+    return sequence('remove-dist', ['vendor-bower', 'vendor-npm', 'own-js', 'own-less', 'own-html'], 'inject-all', 'browser-sync');
 });
 
 
