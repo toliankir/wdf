@@ -88,14 +88,28 @@ gulp.task('own-html', () => {
 //Injects all files from distributive folder to html files.
 gulp.task('inject-all', () => {
     return gulp.src([path.src + '/' + mask.html])
-        .pipe(plugins.inject(gulp.src(path.dist + '/*.css', {read: false}), {quiet: true}))
+        .pipe(plugins.inject(gulp.src(path.dist + '/*.css', {read: false}), {
+            quiet: true,
+            removeTags: true
+        }))
         .pipe(plugins.debug({
             title: 'HTML inject:',
             showCount: false
         }))
-        .pipe(plugins.inject(gulp.src(path.dist + '/*.js', {read: false}), {quiet: true}))
-        .pipe(plugins.inject(gulp.src(path.distVendor + '/' + mask.js, {read: false}), {name: 'libs', quiet: true}))
-        .pipe(plugins.inject(gulp.src(path.distVendor + '/' + mask.css, {read: false}), {name: 'libs', quiet: true}))
+        .pipe(plugins.inject(gulp.src(path.dist + '/*.js', {read: false}), {
+            quiet: true,
+            removeTags: true
+        }))
+        .pipe(plugins.inject(gulp.src(path.distVendor + '/' + mask.js, {read: false}), {
+            name: 'libs',
+            quiet: true,
+            removeTags: true
+        }))
+        .pipe(plugins.inject(gulp.src(path.distVendor + '/' + mask.css, {read: false}), {
+            name: 'libs',
+            quiet: true,
+            removeTags: true
+        }))
         .pipe(gulp.dest(path.main));
 });
 
