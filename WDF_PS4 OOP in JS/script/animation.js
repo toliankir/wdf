@@ -49,20 +49,18 @@ function mainLoop(time) {
             }
         } else {
             let boom;
-            if (pokemonAnimation1.player.health <= 0) {
+            if (pokemonAnimation1.player.fHealth <= 0) {
                 boom = createBoomAnimation(pokemonAnimation1.xp, pokemonAnimation1.yp);
                 pokemonAnimation1.active = false;
+            }
 
-            } else {
+            if (pokemonAnimation2.player.fHealth <= 0) {
                 boom = createBoomAnimation(pokemonAnimation2.xp, pokemonAnimation2.yp);
                 pokemonAnimation2.active = false;
             }
             animations.push(boom);
         }
-
-
     }
-
     requestAnimationFrame(mainLoop);
 }
 

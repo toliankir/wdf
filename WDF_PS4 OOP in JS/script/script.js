@@ -136,6 +136,7 @@ $(document).ready(function () {
                 $profile1.hide();
                 $player1.show();
                 $fightResult.text('You Loose!');
+                win = [];
             }
             createFightAnimation(player1, player2, maxExperience);
             showStatistics();
