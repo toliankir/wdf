@@ -25,8 +25,8 @@ function getImageInfoFromType(type) {
             };
         case 'Water':
             return {
-                src: 'assets/pokemons/3.png',
-                frameCount: 170,
+                src: 'assets/pokemons/water.png',
+                frameCount: 8,
                 rate: 50,
                 yPos: 275
             };

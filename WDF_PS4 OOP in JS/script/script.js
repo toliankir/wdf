@@ -41,6 +41,8 @@ $(document).ready(function () {
     allRangeSlector.attr('max', maxExperience);
     M.Range.init(allRangeSlector);
 
+    imgToSvg();
+
     //Hide fight button
     $actionFight.hide();
     $showProfile.hide();
@@ -120,7 +122,6 @@ $(document).ready(function () {
         $profile2.show();
         $cancelProfile.hide();
         $actionFight.hide();
-        // setTimeout(() => {
         actions = [];
         fight(player1, player2, () => {
             showProfile();
@@ -137,10 +138,8 @@ $(document).ready(function () {
                 $fightResult.text('You Loose!');
             }
             createFightAnimation(player1, player2, maxExperience);
-            console.log(actions);
             showStatistics();
         });
-        // }, 100);
     });
 
     $showProfile.on('click', (ev) => {
@@ -210,7 +209,7 @@ function showProfile() {
     $('#profile1 .type').text(`Type: ${player1.type}`);
     $('#profile1 .health')
         .text(`Health: ${player1.health}`)
-        .append($('<span>+</span>')
+        .append($('<i class="fas fa-plus-circle"></i>')
             .css('cursor', 'pointer')
             .on('click', () => {
                 if (player1.exp >= 100) {
@@ -221,7 +220,7 @@ function showProfile() {
             }));
     $('#profile1 .damage')
         .text(`Damage: ${player1.damage}`)
-        .append($('<span>+</span>')
+        .append($('<i class="fas fa-plus-circle"></i>')
             .css('cursor', 'pointer')
             .on('click', () => {
                 if (player1.exp >= 100) {
@@ -272,7 +271,6 @@ function showStatistics() {
 function fight(pokemon1, pokemon2, callback) {
     pokemon1.prevExp = pokemon1.totalExp;
     pokemon2.prevExp = pokemon2.totalExp;
-    console.log(pokemon1);
     pokemon1.restoreHealth();
     pokemon2.restoreHealth();
     let pokemonQueue = Math.random() >= 0.5;
@@ -293,6 +291,17 @@ function fight(pokemon1, pokemon2, callback) {
         pokemon2.exp += 500 + pokemon2.fHealth;
         pokemon2.totalExp += 500 + pokemon2.fHealth;
     }
-    console.log(pokemon1);
     callback();
 }
+
+function imgToSvg() {
+    $('img.svg-image').each((index, el) => {
+        const $img = $(el);
+        const imgSrc = $img.attr('src');
+        $.get(imgSrc, (data) => {
+            const $svg = $(data).find('svg');
+            $img.replaceWith($svg);
+        }, 'xml');
+    });
+}
+

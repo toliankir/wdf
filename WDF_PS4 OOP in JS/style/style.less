@@ -12,6 +12,12 @@
 
 .title {
   text-align: center;
+  & svg {
+    margin-left: 10px;
+  }
+  & svg *{
+    fill: @orange-color !important;
+  }
   & h1 {
     margin-top: 3rem;
     color: @orange-color;
@@ -40,6 +46,10 @@
     & p:first-child {
       margin-top: 0;
     }
+    & i {
+      color: @orange-color;
+      margin-left: 5px;
+    }
   }
   & .playerExp {
     text-align: center;
@@ -65,4 +75,21 @@
   margin-left: -320px;
   margin-top: 20px;
   left: 50%;
+}
+
+h3.statistics-title {
+  color: @orange-color;
+  text-align: center;
+  font-weight: bold;
+}
+
+.statistics {
+  display: flex;
+  justify-content: center;
+  & ul {
+    & li {
+      color: @orange-color;
+      font-weight: bold;
+    }
+  }
 }

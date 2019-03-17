@@ -9,6 +9,12 @@
 .title {
   text-align: center;
 }
+.title svg {
+  margin-left: 10px;
+}
+.title svg * {
+  fill: orange !important;
+}
 .title h1 {
   margin-top: 3rem;
   color: orange;
@@ -36,6 +42,10 @@
 .menu_select .player-profile p:first-child {
   margin-top: 0;
 }
+.menu_select .player-profile i {
+  color: orange;
+  margin-left: 5px;
+}
 .menu_select .playerExp {
   text-align: center;
   font-weight: bold;
@@ -56,5 +66,18 @@
   margin-left: -320px;
   margin-top: 20px;
   left: 50%;
+}
+h3.statistics-title {
+  color: orange;
+  text-align: center;
+  font-weight: bold;
+}
+.statistics {
+  display: flex;
+  justify-content: center;
+}
+.statistics ul li {
+  color: orange;
+  font-weight: bold;
 }
 /*# sourceMappingURL=style.css.map */
