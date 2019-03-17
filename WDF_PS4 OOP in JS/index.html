@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WDF_PS4 OOP in JS</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"
+            integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="style/style.css">
+</head>
+<body>
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <img class="svg" src="assets/logo.svg"/>
+    </div>
+</nav>
+<div class="container">
+    <div class="title">
+        <h1>Pokemon battle</h1>
+    </div>
+
+    <div class="fight-result"></div>
+
+    <div class="menu_select">
+        <canvas id="player1Image" width="200" height="200">
+        </canvas>
+        <div class="player" id="player1">
+            <form action="#">
+                <div>
+                    <label for="player1Name">Player 1</label>
+                    <input type="text" class="form-control" id="player1Name">
+                </div>
+                <div>
+                    <label for="Player1Type">Materialize Select</label>
+                    <select id="Player1Type">
+                        <option value="" disabled selected>Choose your Materialize</option>
+                        <option>Fire</option>
+                        <option>Wood</option>
+                        <option>Electricity</option>
+                        <option>Water</option>
+                    </select>
+                </div>
+                <p class="playerExp" id="player1Exp">
+                </p>
+                <p class="range-field">
+                    <input type="range" id="player1Range" min="0" max="1000"/>
+                </p>
+                <button class="waves-effect waves-light btn-small" id="showProfile">Profile</button>
+            </form>
+        </div>
+        <div class="player-profile" id="profile1">
+            <p class="name"></p>
+            <p class="type"></p>
+            <p class="health"></p>
+            <p class="damage"></p>
+            <p class="exp"></p>
+            <p class="total-exp"></p>
+            <button id="cancelProfile" class="waves-effect waves-light btn-small">Cancel</button>
+        </div>
+
+        <div class="player-profile" id="profile2">
+            <p class="name"></p>
+            <p class="type"></p>
+            <p class="health"></p>
+            <p class="damage"></p>
+            <p class="exp"></p>
+        </div>
+
+        <div class="player" id="player2">
+            <form action="#">
+                <div>
+                    <label for="player2Name">Player 2</label>
+                    <input type="text" class="form-control" id="player2Name">
+                </div>
+                <div>
+                    <label for="Player2Type">Materialize Select</label>
+                    <select id="Player2Type">
+                        <option value="" disabled selected>Choose your Materialize</option>
+                        <option>Fire</option>
+                        <option>Wood</option>
+                        <option>Electricity</option>
+                        <option>Water</option>
+                    </select>
+                </div>
+                <p class="playerExp" id="player2Exp">
+                </p>
+                </p>
+                <p class="range-field">
+                    <input type="range" id="player2Range" min="0" max="1000"/>
+                </p>
+            </form>
+        </div>
+        <canvas id="player2Image" width="200" height="200">
+        </canvas>
+        <!--<div class="select">-->
+        <!--<form action="#">-->
+        <!--<div>-->
+        <!--<label for="name2">Computer player name</label>-->
+        <!--<select class="form-control" id="name2"></select>-->
+        <!--</div>-->
+        <!--<div>-->
+        <!--<label for="type2">Materialize</label>-->
+        <!--<input disabled class="form-control" type="text" id="type2">-->
+        <!--</div>-->
+        <!--<p class="range-value" id="range-value2"></p>-->
+        <!--<p class="range-field">-->
+        <!--<input disabled type="range" id="range2" min="0" max="10000"/>-->
+        <!--</p>-->
+        <!--</form>-->
+        <!--</div>-->
+
+    </div>
+
+    <div class="action">
+        <button id="fight" class="waves-effect amber darken-3 waves-light btn-large">Fight!</button>
+        <!--<button id="move-direction">Move direction</button>-->
+    </div>
+
+    <canvas width="640" height="480" id="game"></canvas>
+</div>
+<div class="statistics">
+</div>
+<script src="script/script.js"></script>
+<script src="script/pokemonPlayerImage.js"></script>
+<script src="script/player.js"></script>
+<script src="script/animation.js"></script>
+</body>
+</html>
