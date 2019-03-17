@@ -48,17 +48,21 @@ function mainLoop(time) {
                 pokemonAnimation1.dx = 10;
             }
         } else {
-            let boom;
+            let boom, titleString='';
             if (pokemonAnimation1.player.fHealth <= 0) {
                 boom = createBoomAnimation(pokemonAnimation1.xp, pokemonAnimation1.yp);
+                titleString = 'You loose';
                 pokemonAnimation1.active = false;
             }
 
             if (pokemonAnimation2.player.fHealth <= 0) {
                 boom = createBoomAnimation(pokemonAnimation2.xp, pokemonAnimation2.yp);
+                titleString = 'You win!';
                 pokemonAnimation2.active = false;
             }
+            animations.push(createTitleAnimation(250, titleString));
             animations.push(boom);
+
         }
     }
     requestAnimationFrame(mainLoop);
@@ -67,9 +71,9 @@ function mainLoop(time) {
 
 function createFightAnimation(player1, player2, maxExperience) {
     const backAnimations = getBackgroundAnimation();
+    const titleAnimation = createTitleAnimation(250, 'FIGHT');
     pokemonAnimation1 = createPokemonAnimation(player1, true, maxExperience);
     pokemonAnimation2 = createPokemonAnimation(player2, false, maxExperience);
-
 
     actions = actions.reverse();
 
@@ -79,17 +83,41 @@ function createFightAnimation(player1, player2, maxExperience) {
     animations.push(pokemonAnimation1);
     animations.push(pokemonAnimation2);
     animations.push(backAnimations[3]);
-
+    animations.push(titleAnimation);
 
     requestAnimationFrame(mainLoop);
 }
 
+
+function createTitleAnimation(y, str) {
+    const titleAnimation = new Animation(50);
+    titleAnimation.str = str;
+    titleAnimation.y = y;
+    titleAnimation.active = true;
+
+    titleAnimation.update = function () {
+        this.y -= 4;
+        if (this.y < 0) {
+            this.active = false;
+        }
+    };
+
+    titleAnimation.render = function () {
+        canvasContext.textAlign = 'center';
+        canvasContext.font = 'bold 96px Arial';
+        canvasContext.fillStyle = 'red';
+        canvasContext.fillText(this.str, 640/2, this.y);
+    };
+
+    return titleAnimation;
+}
 
 function createDamageAnimation(xPosition, str) {
     const damageAnimation = new Animation(50);
     damageAnimation.str = str;
     damageAnimation.x = xPosition;
     damageAnimation.y = 250;
+    damageAnimation.active = true;
 
     damageAnimation.update = function () {
         this.y -= 5;
@@ -101,6 +129,7 @@ function createDamageAnimation(xPosition, str) {
     damageAnimation.render = function () {
         canvasContext.font = 'bold 30px Arial';
         canvasContext.fillStyle = 'red';
+        canvasContext.textAlign = 'center';
         canvasContext.fillText(this.str, this.x, this.y);
     };
 
@@ -170,7 +199,7 @@ function createPokemonAnimation(player, left, maxExperience) {
             this.dx = -(this.dx + 10);
             moveDirection *= -1;
 
-            const damage = createDamageAnimation((this.xp === 0 ? 320 : 100), `-${Math.trunc(currentAction.damage)}hp`);
+            const damage = createDamageAnimation((this.xp === 0 ? 420 : 200), `-${Math.trunc(currentAction.damage)}hp`);
             const boom = createBoomAnimation(this.xp === 0 ? 320 : 100, 250);
 
             animations.push(boom);
