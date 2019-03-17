@@ -1,5 +1,6 @@
 * {
   box-sizing: border-box;
+  position: relative;
 }
 .navbar-default {
   background-color: #29b6f6;
@@ -32,8 +33,17 @@
   position: relative;
   user-select: none;
 }
+.menu_select .player-profile p:first-child {
+  margin-top: 0;
+}
 .menu_select .playerExp {
   text-align: center;
+  font-weight: bold;
+  color: orange;
+}
+.fight-result {
+  text-align: center;
+  font-size: 48px;
   font-weight: bold;
   color: orange;
 }
@@ -41,5 +51,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+#game {
+  margin-left: -320px;
+  margin-top: 20px;
+  left: 50%;
 }
 /*# sourceMappingURL=style.css.map */

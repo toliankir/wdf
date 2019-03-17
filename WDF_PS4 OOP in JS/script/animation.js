@@ -38,23 +38,34 @@ function mainLoop(time) {
         el.run(time);
     });
 
-
-    if (actions.length === 0) {
-        return;
-    }
-
-    if (pokemonAnimation1.dx === 0 && pokemonAnimation2.dx === 0 && actions.length > 0) {
-        currentAction = actions.pop();
-        if (pokemonAnimation1.player.name === currentAction.name) {
-            pokemonAnimation2.dx = 10;
+    if (pokemonAnimation1.dx === 0 && pokemonAnimation2.dx === 0
+        && animations.indexOf(pokemonAnimation1) !== -1 && animations.indexOf(pokemonAnimation2) !== -1) {
+        if (actions.length > 0) {
+            currentAction = actions.pop();
+            if (pokemonAnimation1.player.name === currentAction.name) {
+                pokemonAnimation2.dx = 10;
+            } else {
+                pokemonAnimation1.dx = 10;
+            }
         } else {
-            pokemonAnimation1.dx = 10;
+            let boom;
+            if (pokemonAnimation1.player.health <= 0) {
+                boom = createBoomAnimation(pokemonAnimation1.xp, pokemonAnimation1.yp);
+                pokemonAnimation1.active = false;
+
+            } else {
+                boom = createBoomAnimation(pokemonAnimation2.xp, pokemonAnimation2.yp);
+                pokemonAnimation2.active = false;
+            }
+            animations.push(boom);
         }
+
+
     }
 
-    // console.log(actions);
     requestAnimationFrame(mainLoop);
 }
+
 
 function createFightAnimation(player1, player2, maxExperience) {
     const backAnimations = getBackgroundAnimation();
@@ -99,6 +110,39 @@ function createDamageAnimation(xPosition, str) {
 
 }
 
+function createBoomAnimation(x, y) {
+    const imageInfo = getImageInfoFromType('Boom');
+
+    const boomAnimation = new Animation(imageInfo.rate);
+    boomAnimation.w = spriteSize;
+    boomAnimation.h = spriteSize;
+    boomAnimation.currentFrame = imageInfo.frameCount;
+    boomAnimation.frameCount = 10;
+    boomAnimation.x = x;
+    boomAnimation.y = y;
+    boomAnimation.duration = 10;
+    boomAnimation.active = true;
+    boomAnimation.srcImg = new Image();
+    boomAnimation.srcImg.src = imageInfo.src;
+
+    boomAnimation.update = function () {
+        if (--this.duration <= 0) {
+            this.active = false;
+        }
+        if (this.currentFrame >= this.frameCount) {
+            this.currentFrame = 0;
+        }
+        this.currentFrame++;
+    };
+
+    boomAnimation.render = function () {
+        canvasContext.drawImage(this.srcImg, this.w * this.currentFrame, 0, this.w, this.h, this.x, this.y, this.w, this.h);
+    };
+
+    return boomAnimation;
+}
+
+
 function createPokemonAnimation(player, left, maxExperience) {
     const imageInfo = getImageInfoFromType(player.type);
 
@@ -127,7 +171,11 @@ function createPokemonAnimation(player, left, maxExperience) {
         if (this.currentPosition > $canvas.width - this.w - this.w * 0.75) {
             this.dx = -(this.dx + 10);
             moveDirection *= -1;
-            const damage = createDamageAnimation((this.xp === 0 ? 420 : 100), `-${currentAction.damage}hp`);
+
+            const damage = createDamageAnimation((this.xp === 0 ? 320 : 100), `-${Math.trunc(currentAction.damage)}hp`);
+            const boom = createBoomAnimation(this.xp === 0 ? 320 : 100, 250);
+
+            animations.push(boom);
             animations.push(damage);
         }
 

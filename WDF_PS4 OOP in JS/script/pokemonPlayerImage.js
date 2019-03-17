@@ -6,21 +6,21 @@ function getImageInfoFromType(type) {
             return {
                 src: 'assets/pokemons/1.png',
                 frameCount: 10,
-                rate: 75,
+                rate: 50,
                 yPos: 200
             };
         case 'Wood':
             return {
                 src: 'assets/pokemons/5.png',
                 frameCount: 31,
-                rate: 60,
+                rate: 50,
                 yPos: 275
             };
         case 'Fire':
             return {
                 src: 'assets/pokemons/2.png',
                 frameCount: 72,
-                rate: 75,
+                rate: 50,
                 yPos: 275
             };
         case 'Water':
@@ -29,6 +29,13 @@ function getImageInfoFromType(type) {
                 frameCount: 170,
                 rate: 50,
                 yPos: 275
+            };
+        case 'Boom':
+            return {
+                src: 'assets/boom.png',
+                frameCount: 10,
+                rate: 90,
+                yPos: 100
             };
     }
 }

@@ -31,7 +31,7 @@ const $profile2 = $('#profile2');
 const $actionFight = $('#fight');
 
 const $statistics = $('.statistics');
-const $fightResult= $('.fight-result');
+const $fightResult = $('.fight-result');
 
 $(document).ready(function () {
     /**
@@ -121,23 +121,25 @@ $(document).ready(function () {
         $cancelProfile.hide();
         $actionFight.hide();
         // setTimeout(() => {
-            actions = [];
-            fight(player1, player2, () => {
-                showProfile();
-                $profile2.hide();
-                $player2.show();
-                $actionFight.show();
-                if (player1.fHealth > 0) {
-                    win.push(JSON.parse(JSON.stringify(player2)));
-                    $fightResult.text('You Win!');
-                    player1Image.setExperience(player1.totalExp);
-                } else {
-                    $fightResult.text('You Loose!');
-                }
-                createFightAnimation(player1, player2, maxExperience);
-                console.log(actions);
-                showStatistics();
-            });
+        actions = [];
+        fight(player1, player2, () => {
+            showProfile();
+            $profile2.hide();
+            $player2.show();
+            $actionFight.show();
+            if (player1.fHealth > 0) {
+                win.push(JSON.parse(JSON.stringify(player2)));
+                $fightResult.text('You Win!');
+                player1Image.setExperience(player1.totalExp);
+            } else {
+                $profile1.hide();
+                $player1.show();
+                $fightResult.text('You Loose!');
+            }
+            createFightAnimation(player1, player2, maxExperience);
+            console.log(actions);
+            showStatistics();
+        });
         // }, 100);
     });
 
@@ -188,7 +190,7 @@ function checkPlayers() {
         }
     }
 
-    if (!player1Image || !player2Image) {
+    if (!player1Image || !player2Image || $player1Name.val() === $player2Name.val()) {
         return false;
     }
 
@@ -256,7 +258,7 @@ function getPlayer2() {
     return player;
 }
 
-function showStatistics(){
+function showStatistics() {
     $statistics.html('');
     const $list = $('<ul></ul>');
     win.forEach((el) => {

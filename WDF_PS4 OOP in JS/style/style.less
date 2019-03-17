@@ -2,6 +2,7 @@
 
 * {
   box-sizing: border-box;
+  position: relative;
 }
 
 .navbar-default {
@@ -25,7 +26,6 @@
   align-items: flex-start;
   & canvas {
     border: 1px solid black;
-
   }
   & .player {
     width: 50%;
@@ -37,6 +37,9 @@
     margin: 0 10px;
     position: relative;
     user-select: none;
+    & p:first-child {
+      margin-top: 0;
+    }
   }
   & .playerExp {
     text-align: center;
@@ -45,9 +48,21 @@
   }
 }
 
+.fight-result {
+  text-align: center;
+  font-size: 48px;
+  font-weight: bold;
+  color: @orange-color;
+}
+
 .action {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
+#game {
+  margin-left: -320px;
+  margin-top: 20px;
+  left: 50%;
+}
